@@ -1,0 +1,40 @@
+#pragma once
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+
+#ifndef PORT
+  #define PORT 8080
+#endif
+#ifndef BUFFER_SIZE
+  #define BUFFER_SIZE 1024
+#endif
+
+typedef struct {
+  int socket_fd; 
+} connection_t;
+
+typedef struct {
+  int socket_fd,
+      new_socket;
+
+  // OPTIONS
+  int reuseaddr_opt;
+
+  struct sockaddr_in address;
+  size_t address_length;
+  uint8_t* buffer;
+} server_t;
+
+// init only initialises the server_t struct
+void server_init(server_t* server);
+
+// run executes an infinite application loop
+// returns 0 on failure
+int server_run(server_t* server);
+
+void server_handle_socket(server_t* server, int socket_fd);
