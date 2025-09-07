@@ -16,5 +16,21 @@ this is still slow.
 # Features
  - No caching
  - Super lightweight and fast
- ![Image demostrating the size of a minimal response](imgs/size.png)
  - No *unused* *extra* features taking up space
+
+# Comparison with python3 -m http.server
+Note that these comparisons aren't meant to be fair
+
+## Size of response
+C server      -- ![Image showing size of C server](imgs/size.png)
+Python server -- ![Image showing size of python server](imgs/size_python.png)
+
+This comparison is not entirely fair, because the python server replies with a custom html
+404 page for the favicon transferring that data
+
+## File size
+C server      -- ![Image showing the filesize of the C server](imgs/file_size.png)
+Python server -- ![Image showing the filesize of the python server](imgs/file_size_python.png)
+
+This comparison is not entirely fair, because the python server has a little more features
+like: directory listing, cli arguments and supports more versions of HTTP.
