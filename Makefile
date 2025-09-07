@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g
-LINK_FLAGS = -lc
+LINK_FLAGS = -lc -lpthread
 SRCS = src/main.c src/server.c
 
 OBJ_DIR = build

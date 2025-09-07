@@ -6,6 +6,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <pthread.h>
+#include <stdatomic.h>
 
 #ifndef PORT
   #define PORT 8080
@@ -16,11 +18,18 @@
 
 typedef struct {
   int socket_fd; 
+  struct sockaddr address;
+  uint8_t* buffer;
 } connection_t;
 
 typedef struct {
   int socket_fd,
       new_socket;
+  atomic_int connections_amount;
+
+  size_t threads_amount;
+  int* thread_ids;
+  pthread_t* threads;
 
   // OPTIONS
   int reuseaddr_opt;
@@ -32,9 +41,11 @@ typedef struct {
 
 // init only initialises the server_t struct
 void server_init(server_t* server);
+void server_free(server_t* server);
 
 // run executes an infinite application loop
-// returns 0 on failure
+// returns -1 on failure
 int server_run(server_t* server);
 
-void server_handle_socket(server_t* server, int socket_fd);
+void* server_handle_socket(void* args);
+

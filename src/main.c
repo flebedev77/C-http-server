@@ -10,5 +10,6 @@ int main() {
   server_t server;
   server_init(&server);
   server_run(&server);
+  server_free(&server);
   return 0;
 }
