@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g
 LINK_FLAGS = -lc -lpthread
-SRCS = src/main.c src/server.c
+SRCS = src/main.c src/server.c src/util.c
 
 OBJ_DIR = build
 OBJS = $(patsubst src/%.c, $(OBJ_DIR)/%.o, $(SRCS))

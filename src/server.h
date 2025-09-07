@@ -9,12 +9,16 @@
 #include <pthread.h>
 #include <stdatomic.h>
 
+#include "util.h"
+
 #ifndef PORT
   #define PORT 8080
 #endif
 #ifndef BUFFER_SIZE
   #define BUFFER_SIZE 1024
 #endif
+
+// #define DEBUG true
 
 typedef struct {
   int socket_fd; 
@@ -36,7 +40,6 @@ typedef struct {
 
   struct sockaddr_in address;
   size_t address_length;
-  uint8_t* buffer;
 } server_t;
 
 // init only initialises the server_t struct
@@ -48,4 +51,3 @@ void server_free(server_t* server);
 int server_run(server_t* server);
 
 void* server_handle_socket(void* args);
-
