@@ -12,3 +12,9 @@ Javascript code and then run it. Because of that, I began using `python3 -m http
 Which was substantially faster (by faster I mean it didn't redownload stuff everytime I ran it).
 Ultimatley though, python just interprets a good old .py file located in `/usr/lib/python/http/server.py`
 this is still slow.
+
+# Features
+ - No caching
+ - Super lightweight and fast
+ ![Image demostrating the size of a minimal response](imgs/size.png)
+ - No *unused* *extra* features taking up space
