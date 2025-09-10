@@ -16,7 +16,6 @@ void server_init(server_t* server) {
 
   server->threads_amount = 6;
 
-  server->thread_ids = (int*)malloc(sizeof(int) * server->threads_amount);
   server->threads = (pthread_t*)malloc(sizeof(pthread_t) * server->threads_amount);
 
   random_init();
@@ -72,8 +71,6 @@ int server_run(server_t* server) {
       perror("pthread_create");
       free(connection_data);
     }
-
-    server->thread_ids[server->connections_amount] = tid;
   }
 
   return 0;
@@ -94,55 +91,60 @@ void* server_handle_socket(void* args) {
   ssize_t bytes_read = read(connection->socket_fd, incoming_data, BUFFER_SIZE);  
   if (bytes_read == -1) {
     perror("read");
-    pthread_exit(0);
+    goto socket_cleanup;
   }
-
 
   // Last byte is usually a new line, replace that with null terminator
   incoming_data[bytes_read-1] = 0;
   printf("Received %zd bytes: %s  strlen: %zd\n", bytes_read, incoming_data, strlen((char*)incoming_data));
 
+  char route[ROUTE_MAX_LENGTH] = {0};
+  get_route((char*)incoming_data, route, ROUTE_MAX_LENGTH, bytes_read);
+
 #ifdef DEBUG
   simulate_latency(1, 10);
 #endif
+ 
+  filedata_t file = read_file(route);
+  if (file.len == 0) {
+    perror("read_file");
+    goto socket_cleanup;
+  }
 
-  uint8_t outgoing_data[BUFFER_SIZE] = {0};
-
-  char* http_header = generate_http_header(3, BUFFER_SIZE-1);
-  strcpy((char*)outgoing_data, http_header);
-  free(http_header);
+  char* http_header = generate_http_header(file.len, BUFFER_SIZE-1);
 
   // Use send() maybe?
-  ssize_t bytes_sent = write(connection->socket_fd, outgoing_data, strlen((char*)outgoing_data)+1);
+  ssize_t bytes_sent = write(connection->socket_fd, http_header, strlen((char*)http_header)+1);
+  free(http_header);
   if (bytes_sent == -1) {
     perror("write");
-    pthread_exit(0);
+    goto socket_cleanup;
   }
 
-  bytes_sent = write(connection->socket_fd, "hi\0", 3);
+  bytes_sent = write(connection->socket_fd, file.data, file.len);
   if (bytes_sent == -1) {
     perror("write");
-    pthread_exit(0);
+    goto socket_cleanup;
   }
-
 
   printf("Echoed %zd bytes\n", bytes_sent);
 
+socket_cleanup:
   atomic_fetch_sub(&server->connections_amount, 1);
 
   if (close(connection->socket_fd) == -1) {
     perror("close");
   }
+  free(file.data);
   free(connection);
   pthread_exit(0);
 }
 
 void server_free(server_t* server) {
-  close(server->socket_fd);
-
   for (size_t i = 0; i < server->threads_amount; i++) {
     pthread_join(server->threads[i], NULL);
   }
-  free(server->thread_ids);
   free(server->threads);
+
+  close(server->socket_fd);
 }

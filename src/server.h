@@ -18,6 +18,8 @@
   #define BUFFER_SIZE 1024
 #endif
 
+#define ROUTE_MAX_LENGTH 100
+
 // #define DEBUG true
 
 typedef struct {
@@ -32,7 +34,6 @@ typedef struct {
   atomic_int connections_amount;
 
   size_t threads_amount;
-  int* thread_ids;
   pthread_t* threads;
 
   // OPTIONS
