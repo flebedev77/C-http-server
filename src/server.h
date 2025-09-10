@@ -19,6 +19,7 @@
 #endif
 
 #define ROUTE_MAX_LENGTH 100
+#define MIME_MAX_LENGTH 100
 
 // #define DEBUG true
 

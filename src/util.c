@@ -14,16 +14,18 @@ void simulate_latency(int min, int max) {
   sleep(random_int(min, max));
 }
 
-char* generate_http_header(size_t data_len, size_t header_len) {
+
+
+char* generate_http_header(size_t data_len, size_t header_len, const char* mime_type) {
   char* header = (char*)malloc(header_len);
   char* headerfmt = "HTTP/1.1 200 OK\r\n"
-    "Content-Type: text/html\r\n"
+    "Content-Type: %s\r\n"
     "Content-Length: %zd\r\n"
     "Connection: keep-alive\r\n\r\n";
-  int result = snprintf(header, header_len, headerfmt, data_len);
+  int result = snprintf(header, header_len, headerfmt, mime_type, data_len);
 
   if (result < 0) {
-    return nullptr;
+    return 0;
   }
   return header;
 }
@@ -51,53 +53,14 @@ void get_route(char *req, char *out, size_t out_len, size_t req_len) {
     out[out_index++] = '\0';
 }
 
-
-// C stdlib
-#ifndef POSIX
-filedata_t read_file(const char* filename) {
-  printf("Reading %s\n\n", filename);
-  FILE* file = fopen(filename, "rb");
-  if (file == NULL) {
-    printf("%s ", filename);
-    perror("fopen");
-    return (filedata_t){ 0 };
-  }
-
-  if (fseek(file, 0, SEEK_END) != 0) {
-    perror("fseek");
-    goto cleanup;
-  }
-  long file_size = ftell(file);
-  if (fseek(file, 0, SEEK_SET) != 0) {
-    perror("fseek");
-    goto cleanup;
-  }
-
-  uint8_t* buffer = (uint8_t*)malloc(file_size+1);
-  buffer[file_size-1] = 0;
-
-  size_t bytes_read = fread(buffer, 1, file_size, file);
-
-  if (bytes_read != (size_t)file_size) {
-    perror("fread");
-    goto cleanup;
-  }
-
-  if (fclose(file) != 0) {
-    perror("fclose");
-  }
-  return (filedata_t){ bytes_read, buffer };
-
-cleanup:
-  if (fclose(file) != 0) {
-    perror("fclose");
-  }
-  return (filedata_t){ 0 };
+const char *get_file_extension(const char *s) {
+    if (!s) return NULL;
+    const char *dot = strrchr(s, '.');
+    if (!dot || dot[1] == '\0') return NULL;
+    return dot + 1;
 }
-#endif
 
-#ifdef POSIX
-filedata_t read_file(const char* filename) {
+filedata_t read_file(const char* filename, size_t mime_len) {
   int file_fd = open(filename, O_RDONLY);  
   if (file_fd == -1) {
     perror("open");
@@ -111,16 +74,34 @@ filedata_t read_file(const char* filename) {
   }
   
   uint8_t* buffer = (uint8_t*)malloc(file_stat.st_size);
+  char* mime_type = (char*)malloc(mime_len);
+  if (buffer == NULL || mime_type == NULL) {
+    perror("malloc");
+    goto fail;
+  }
+
+  memset(buffer, 0, file_stat.st_size);
+  memset(mime_type, 0, mime_len);
+
   ssize_t bytes_read = read(file_fd, buffer, file_stat.st_size);
   if (bytes_read == -1) {
     perror("read");
     goto fail;
   }
+  
+  const char* ext = get_file_extension(filename);
 
-  return (filedata_t) { (size_t)file_stat.st_size, buffer };
+  if (strcmp(ext, "html") == 0)
+    strcpy(mime_type, "text/html");
+  else if (strcmp(ext, "js") == 0)
+    strcpy(mime_type, "application/javascript");
+
+  printf("%s", mime_type);
+
+
+  return (filedata_t) { (size_t)file_stat.st_size, mime_type, buffer };
 
 fail:
   close(file_fd);
   return (filedata_t) {0};
 }
-#endif

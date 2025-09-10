@@ -105,16 +105,16 @@ void* server_handle_socket(void* args) {
   simulate_latency(1, 10);
 #endif
  
-  filedata_t file = read_file(route);
+  filedata_t file = read_file(route, MIME_MAX_LENGTH);
   if (file.len == 0) {
     perror("read_file");
     goto socket_cleanup;
   }
 
-  char* http_header = generate_http_header(file.len, BUFFER_SIZE-1);
+  char* http_header = generate_http_header(file.len, BUFFER_SIZE-1, file.mime);
 
   // Use send() maybe?
-  ssize_t bytes_sent = write(connection->socket_fd, http_header, strlen((char*)http_header)+1);
+  ssize_t bytes_sent = write(connection->socket_fd, http_header, strlen((char*)http_header));
   free(http_header);
   if (bytes_sent == -1) {
     perror("write");
@@ -135,9 +135,13 @@ socket_cleanup:
   if (close(connection->socket_fd) == -1) {
     perror("close");
   }
-  free(file.data);
+  if (file.len != 0) {
+    free(file.data);
+    free(file.mime);
+  }
   free(connection);
   pthread_exit(0);
+  return 0;
 }
 
 void server_free(server_t* server) {
