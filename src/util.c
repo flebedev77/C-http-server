@@ -91,10 +91,33 @@ filedata_t read_file(const char* filename, size_t mime_len) {
   
   const char* ext = get_file_extension(filename);
 
-  if (strcmp(ext, "html") == 0)
-    strcpy(mime_type, "text/html");
-  else if (strcmp(ext, "js") == 0)
-    strcpy(mime_type, "application/javascript");
+  if (strcmp(ext, "html") == 0) strcpy(mime_type, "text/html");
+  else if (strcmp(ext, "css") == 0) strcpy(mime_type, "text/css");
+  else if (strcmp(ext, "txt") == 0) strcpy(mime_type, "text/plain");
+  else if (strcmp(ext, "js") == 0) strcpy(mime_type, "application/javascript");
+  else if (strcmp(ext, "wasm") == 0) strcpy(mime_type, "application/wasm");
+  else if (strcmp(ext, "png") == 0) strcpy(mime_type, "image/png");
+  else if (strcmp(ext, "gif") == 0) strcpy(mime_type, "image/gif");
+  else if (strcmp(ext, "jpeg") == 0) strcpy(mime_type, "image/jpeg");
+  else if (strcmp(ext, "webp") == 0) strcpy(mime_type, "image/webp");
+  else if (strcmp(ext, "svg") == 0) strcpy(mime_type, "image/svg+xml");
+  else if (strcmp(ext, "bmp") == 0) strcpy(mime_type, "image/bmp");
+  else if (strcmp(ext, "ico") == 0) strcpy(mime_type, "image/vnd.microsoft.icon");
+  else if (strcmp(ext, "mp3") == 0) strcpy(mime_type, "audio/mpeg");
+  else if (strcmp(ext, "wav") == 0) strcpy(mime_type, "audio/wav");
+  else if (strcmp(ext, "ogg") == 0) strcpy(mime_type, "audio/ogg");
+  else if (strcmp(ext, "opus") == 0) strcpy(mime_type, "audio/opus");
+  else if (strcmp(ext, "aac") == 0) strcpy(mime_type, "audio/aac");
+  else if (strcmp(ext, "m4a") == 0) strcpy(mime_type, "audio/mp4");
+
+  else if (strcmp(ext, "mp4") == 0) strcpy(mime_type, "video/mp4");
+  else if (strcmp(ext, "webm") == 0) strcpy(mime_type, "video/webm");
+  else if (strcmp(ext, "ogv") == 0) strcpy(mime_type, "video/ogg");
+  else if (strcmp(ext, "avi") == 0) strcpy(mime_type, "video/x-msvideo");
+  else if (strcmp(ext, "mov") == 0) strcpy(mime_type, "video/quicktime");
+  else if (strcmp(ext, "mkv") == 0) strcpy(mime_type, "video/x-matroska");
+  else if (strcmp(ext, "mpeg") == 0 || strcmp(ext, "mpg") == 0) strcpy(mime_type, "video/mpeg");
+  else strcpy(mime_type, "application/octet-stream");
 
   printf("%s", mime_type);
 
