@@ -11,9 +11,6 @@
 
 #include "util.h"
 
-#ifndef PORT
-  #define PORT 8080
-#endif
 #ifndef BUFFER_SIZE
   #define BUFFER_SIZE 1024
 #endif
@@ -45,7 +42,7 @@ typedef struct {
 } server_t;
 
 // init only initialises the server_t struct
-void server_init(server_t* server);
+void server_init(server_t* server, uint16_t port);
 void server_free(server_t* server);
 
 // run executes an infinite application loop

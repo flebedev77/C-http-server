@@ -1,6 +1,6 @@
 #include "server.h"
 
-void server_init(server_t* server) {
+void server_init(server_t* server, uint16_t port) {
   memset(server, 0, sizeof(server_t));
 
   // This option will allow multiple servers running on the same host
@@ -11,7 +11,7 @@ void server_init(server_t* server) {
   server->address_length = sizeof(struct sockaddr_in);
 
   server->address.sin_family = AF_INET;
-  server->address.sin_port = htons(PORT);
+  server->address.sin_port = htons(port);
   server->address.sin_addr.s_addr = INADDR_ANY;
 
   server->threads_amount = 6;
@@ -48,7 +48,7 @@ int server_run(server_t* server) {
     return -1;
   }
   
-  printf("Server is listening on port %d\n", PORT);
+  printf("Server is listening on port %d\n", ntohs(server->address.sin_port));
 
   while (true) {
     connection_t* connection_data = (connection_t*)calloc(1, sizeof(connection_t));

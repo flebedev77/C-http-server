@@ -1,14 +1,27 @@
 #include "server.h"
 
-int main() {
-  // This is what we need to receive
-  // GET / HTTP/1.1
-  //   Host: 127.0.0.1:3000
-  //   User-Agent: curl/8.14.1
-  //   Accept: */*
+void display_help() {
+  printf("usage: server [port]\n");
+}
+
+int main(int argc, char** argv) {
+  if (argc > 1 && argv[1][0] == '-') {
+    display_help();
+    return 0;
+  }
+
+  uint16_t port = 8080;
+  if (argc == 2) {
+    port = (uint16_t)atoi(argv[1]);
+
+    if (port == 0) {
+      display_help();
+      return 0;
+    }
+  }
 
   server_t server;
-  server_init(&server);
+  server_init(&server, port);
   server_run(&server);
   server_free(&server);
   return 0;
