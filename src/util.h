@@ -23,6 +23,8 @@ char* generate_http_header(
     );
 void get_route(char* req, char* out, size_t out_len, size_t req_len);
 
+const char *get_file_extension(const char *s);
+
 typedef struct {
   size_t len;
   char* mime;

@@ -1,20 +1,21 @@
 #include "util.h"
 
-unsigned int random_seed;
+unsigned int random_seed = 0;
 
 void random_init() {
-  srand((unsigned int)time(0));
+  random_seed = (unsigned int)time(0);
+  srand(random_seed);
 }
 
 int random_int(int min, int max) {
+  random_seed = rand();
+  srand(random_seed);
   return (rand() % (max - min)) + min;
 }
 
 void simulate_latency(int min, int max) {
   sleep(random_int(min, max));
 }
-
-
 
 char* generate_http_header(size_t data_len, size_t header_len, const char* mime_type) {
   char* header = (char*)malloc(header_len);
@@ -50,7 +51,7 @@ void get_route(char *req, char *out, size_t out_len, size_t req_len) {
       }
     }
 
-    out[out_index++] = '\0';
+    out[out_index] = '\0';
 }
 
 const char *get_file_extension(const char *s) {
@@ -61,7 +62,19 @@ const char *get_file_extension(const char *s) {
 }
 
 filedata_t read_file(const char* filename, size_t mime_len) {
-  int file_fd = open(filename, O_RDONLY);  
+  if (mime_len < strlen("application/vnd.openxmlformats-officedocument.wordprocessingml.document")) {
+#ifdef DEBUG
+    fprintf(stderr, "mime_len is too short\n");
+#endif
+    return (filedata_t) {0};
+  }
+
+  size_t filename_len = strlen(filename);
+  char* index_html = (filename[filename_len-1] == '/') ? "index.html" : "/index.html";
+  char filename_fmt[filename_len + strlen(index_html) + 1];
+  strcpy(filename_fmt, filename);
+
+  int file_fd = open(filename_fmt, O_RDONLY);  
   if (file_fd == -1) {
     perror("open");
     goto fail;
@@ -71,6 +84,21 @@ filedata_t read_file(const char* filename, size_t mime_len) {
   if (fstat(file_fd, &file_stat) != 0) {
     perror("fstat");
     goto fail;
+  }
+
+  if (S_ISDIR(file_stat.st_mode)) {
+    if (close(file_fd) != 0) {
+      perror("close");
+      goto fail;
+    }
+
+    strcat(filename_fmt, index_html);
+
+    file_fd = open(filename_fmt, O_RDONLY);
+    if (file_fd == -1) {
+      perror("open");
+      goto fail;
+    }
   }
   
   uint8_t* buffer = (uint8_t*)malloc(file_stat.st_size);
@@ -89,7 +117,7 @@ filedata_t read_file(const char* filename, size_t mime_len) {
     goto fail;
   }
   
-  const char* ext = get_file_extension(filename);
+  const char* ext = get_file_extension(filename_fmt);
 
   if (strcmp(ext, "html") == 0) strcpy(mime_type, "text/html");
   else if (strcmp(ext, "css") == 0) strcpy(mime_type, "text/css");
@@ -118,9 +146,6 @@ filedata_t read_file(const char* filename, size_t mime_len) {
   else if (strcmp(ext, "mkv") == 0) strcpy(mime_type, "video/x-matroska");
   else if (strcmp(ext, "mpeg") == 0 || strcmp(ext, "mpg") == 0) strcpy(mime_type, "video/mpeg");
   else strcpy(mime_type, "application/octet-stream");
-
-  printf("%s", mime_type);
-
 
   return (filedata_t) { (size_t)file_stat.st_size, mime_type, buffer };
 
