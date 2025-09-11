@@ -84,7 +84,7 @@ void* server_handle_socket(void* args) {
 
   size_t port_offset = sizeof(uint16_t);
   uint8_t* ip = (uint8_t*)(connection->address.sa_data + port_offset);
-  printf("Connection #%d received connection from: %d.%d.%d.%d:%d \n", server->connections_amount,
+  printf("Connection #%d received connection from: %d.%d.%d.%d:%d ", server->connections_amount,
       ip[0], ip[1], ip[2], ip[3], ntohs(((uint16_t*)connection->address.sa_data)[0]));
 
   uint8_t incoming_data[BUFFER_SIZE] = {0};
@@ -96,12 +96,13 @@ void* server_handle_socket(void* args) {
 
   // Last byte is usually a new line, replace that with null terminator
   incoming_data[bytes_read-1] = 0;
-  printf("Received %zd bytes: %s  strlen: %zd\n", bytes_read, incoming_data, strlen((char*)incoming_data));
 
   char route[ROUTE_MAX_LENGTH] = {0};
   get_route((char*)incoming_data, route, ROUTE_MAX_LENGTH, bytes_read);
+  printf("%s\n", route);
 
 #ifdef DEBUG
+  printf("Received %zd bytes: %s  strlen: %zd\n", bytes_read, incoming_data, strlen((char*)incoming_data));
   simulate_latency(1, 10);
 #endif
  
