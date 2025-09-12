@@ -34,8 +34,8 @@ char* generate_http_header(size_t data_len, size_t header_len, const char* mime_
 void get_route(char *req, char *out, size_t out_len, size_t req_len) {
     bool is_route = false;
     size_t out_index = 0;
-    out[out_index++] = '.';
-    out[out_index++] = '/';
+    // out[out_index++] = '.';
+    // out[out_index++] = '/';
     for (size_t i = 0; i < req_len; i++) {
       if ((req[i] == ' ' || req[i] == 0) && is_route) {
         break;
@@ -96,7 +96,58 @@ filedata_t read_file(const char* filename, size_t mime_len) {
 
     file_fd = open(filename_fmt, O_RDONLY);
     if (file_fd == -1) {
-      perror("open");
+      size_t list_len = 100;
+      size_t list_size = (list_len * PATH_MAX) + 1 + 100;
+      char* list_str = (char*)malloc(list_size);
+      char* list_str_temp = (char*)malloc(list_size);
+      char* mime = (char*)malloc(strlen("text/html") + 1);
+      strcpy(mime, "text/html");
+      
+      DIR* dir = opendir(filename);
+      if (dir == NULL) {
+        perror("opendir");
+        goto fail;
+      }
+
+      struct dirent* entry;
+      size_t entry_index = 0;
+      while ((entry = readdir(dir)) != NULL) {
+        if (entry_index >= list_len-1) break;
+
+        char* entry_filename = entry->d_name;
+
+        if (*entry_filename == '.' || *entry_filename == ' ') continue;
+
+        char full_path[PATH_MAX] = {0};
+        snprintf(full_path, PATH_MAX, (filename[strlen(filename)-1] == '/') ? "%s%s" : "%s/%s", filename, entry_filename);
+
+        char li_el[PATH_MAX];
+        snprintf(li_el, PATH_MAX, "<li><a href=\"%s\">%s</a></li>\n", full_path, entry_filename);
+        strcpy(list_str + strlen(list_str), li_el);
+
+        entry_index++;
+      }
+
+      if (closedir(dir) != 0) {
+        perror("closedir");
+      }
+
+      strcpy(list_str_temp, list_str);
+      int list_fmt_result = snprintf(list_str, list_size, "<h1>%s</h1></br><ul>%s</ul>", filename, list_str_temp);
+      free(list_str_temp);
+      printf("Completed list_str %s\n", list_str);
+
+      if (list_fmt_result < 0) {
+        perror("snprintf");
+        return (filedata_t) {0};
+      }
+
+      return (filedata_t){ strlen(list_str), mime, (uint8_t*)list_str };
+    }
+
+
+    if (fstat(file_fd, &file_stat) != 0) {
+      perror("fstat");
       goto fail;
     }
   }
