@@ -65,12 +65,17 @@ int server_run(server_t* server) {
     uint8_t thread_data[sizeof(server_t*) + sizeof(connection_t*)];
     *(server_t**)thread_data = server;
     *(connection_t**)(thread_data + sizeof(server_t*)) = connection_data;
+#ifndef DEBUG
     int tid = pthread_create(&server->threads[server->connections_amount], 0, server_handle_socket, thread_data);
 
     if (tid != 0) {
       perror("pthread_create");
       free(connection_data);
     }
+#endif
+#ifdef DEBUG
+  server_handle_socket(thread_data);
+#endif
   }
 
   return 0;
@@ -115,20 +120,23 @@ void* server_handle_socket(void* args) {
   char* http_header = generate_http_header(file.len, BUFFER_SIZE-1, file.mime);
 
   // Use send() maybe?
+  size_t total_bytes_sent = 0;
   ssize_t bytes_sent = write(connection->socket_fd, http_header, strlen((char*)http_header));
   free(http_header);
   if (bytes_sent == -1) {
     perror("write");
     goto socket_cleanup;
   }
+  total_bytes_sent += bytes_sent;
 
   bytes_sent = write(connection->socket_fd, file.data, file.len);
   if (bytes_sent == -1) {
     perror("write");
     goto socket_cleanup;
   }
+  total_bytes_sent += bytes_sent;
+  printf("Sent %zd bytes\n", total_bytes_sent);
 
-  printf("Echoed %zd bytes\n", bytes_sent);
 
 socket_cleanup:
   atomic_fetch_sub(&server->connections_amount, 1);
@@ -136,7 +144,7 @@ socket_cleanup:
   if (close(connection->socket_fd) == -1) {
     perror("close");
   }
-  if (file.len != 0) {
+  if (file.len != 0 && file.data != NULL && file.mime != NULL) {
     free(file.data);
     free(file.mime);
   }
