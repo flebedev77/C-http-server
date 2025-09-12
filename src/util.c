@@ -119,10 +119,12 @@ filedata_t read_file(const char* filename, size_t mime_len) {
         if (*entry_filename == '.' || *entry_filename == ' ') continue;
 
         char full_path[PATH_MAX] = {0};
-        snprintf(full_path, PATH_MAX, (filename[strlen(filename)-1] == '/') ? "%s%s" : "%s/%s", filename, entry_filename);
+        int fmt_result = snprintf(full_path, PATH_MAX, (filename[strlen(filename)-1] == '/') ? "%s%s" : "%s/%s", filename, entry_filename);
+        if (fmt_result < 0) continue;
 
         char li_el[PATH_MAX];
-        snprintf(li_el, PATH_MAX, "<li><a href=\"%s\">%s</a></li>\n", full_path, entry_filename);
+        fmt_result = snprintf(li_el, PATH_MAX + 500, "<li><a href=\"%s\">%s</a></li>\n", full_path, entry_filename);
+        if (fmt_result < 0) continue;
         strcpy(list_str + strlen(list_str), li_el);
 
         entry_index++;

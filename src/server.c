@@ -17,6 +17,8 @@ void server_init(server_t* server, uint16_t port) {
   server->threads_amount = 6;
 
   server->threads = (pthread_t*)malloc(sizeof(pthread_t) * server->threads_amount);
+  
+  memset(server->threads, 0, sizeof(pthread_t) * server->threads_amount);
 
   random_init();
 }
@@ -69,6 +71,7 @@ int server_run(server_t* server) {
     int tid = pthread_create(&server->threads[server->connections_amount], 0, server_handle_socket, thread_data);
 
     if (tid != 0) {
+      server->threads[server->connections_amount] = (pthread_t){0};
       perror("pthread_create");
       free(connection_data);
     }
@@ -155,7 +158,8 @@ socket_cleanup:
 
 void server_free(server_t* server) {
   for (size_t i = 0; i < server->threads_amount; i++) {
-    pthread_join(server->threads[i], NULL);
+    if (server->threads[i] != 0)
+      pthread_join(server->threads[i], NULL);
   }
   free(server->threads);
 
