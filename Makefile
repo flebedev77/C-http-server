@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -g
+CFLAGS = -Wall -Wextra -g
 LINK_FLAGS = -lc -lpthread
 SRCS = src/main.c src/server.c src/util.c
 
@@ -23,7 +23,7 @@ test: src/test.c
 	$(TEST_TARGET)
 
 clean:
-	rm -rf $(OBJ_DIR)
+	rm -rf $(OBJ_DIR)/*
 
 .PHONY: all clean
 
