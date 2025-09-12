@@ -18,7 +18,20 @@ int main(void) {
   ASSERT(read.len != 0, "read_file find index.html read"); 
   ASSERT((read.mime != 0 && read.mime != NULL), "read_file mime");
   ASSERT(strcmp(read.mime, "text/html") == 0, "read_file mime type html");
-  ASSERT(read_file("test", 20).len == 0, "read_file mime min length");
+  free(read.data);
+  free(read.mime);
+  read = read_file("test", 20);
+  ASSERT(read.len == 0, "read_file mime min length");
+  free(read.data);
+  free(read.mime);
+  read = read_file("./", 100);
+  ASSERT(read.len != 0, "read_file directory without index.html");
+  free(read.data);
+  free(read.mime);
+  read = read_file("./test/subtest", 100);
+  ASSERT(read.len != 0, "read_file directory without index.html with a deeper path");
+  free(read.data);
+  free(read.mime);
 
   random_init();
   unsigned int prev_seed = random_seed;
@@ -29,6 +42,8 @@ int main(void) {
   ASSERT((generate_http_header(100, 100, "text/plain") != NULL), "generate_http_header");
 
   ASSERT(strcmp((const char*)get_file_extension("index.html"), "html") == 0, "get_file_extension");
+  ASSERT(get_file_extension("index") == NULL, "get_file_extension no dot");
+
 
   printf("TESTS FAILED %d  TESTS PASSED %d  TOTAL TESTS %d\n", tests_failed, tests_passed, tests_failed + tests_passed);
 
