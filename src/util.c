@@ -172,7 +172,8 @@ filedata_t read_file(const char* filename, size_t mime_len) {
   
   const char* ext = get_file_extension(filename_fmt);
 
-  if (strcmp(ext, "html") == 0) strcpy(mime_type, "text/html");
+  if (ext == NULL) strcpy(mime_type, "application/octet-stream");
+  else if (strcmp(ext, "html") == 0) strcpy(mime_type, "text/html");
   else if (strcmp(ext, "css") == 0) strcpy(mime_type, "text/css");
   else if (strcmp(ext, "txt") == 0) strcpy(mime_type, "text/plain");
   else if (strcmp(ext, "js") == 0) strcpy(mime_type, "application/javascript");
