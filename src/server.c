@@ -152,7 +152,6 @@ socket_cleanup:
     free(file.mime);
   }
   free(connection);
-  pthread_exit(0);
   return 0;
 }
 

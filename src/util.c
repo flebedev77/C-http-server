@@ -71,13 +71,20 @@ filedata_t read_file(const char* filename, size_t mime_len) {
 
   size_t filename_len = strlen(filename);
   char* index_html = (filename[filename_len-1] == '/') ? "index.html" : "/index.html";
-  char filename_fmt[filename_len + strlen(index_html) + 1];
+  char filename_fmt[PATH_MAX];//filename_len + strlen(index_html) + 1];
   strcpy(filename_fmt, filename);
+
+  bool is_current_dir = false;
 
   int file_fd = open(filename_fmt, O_RDONLY);  
   if (file_fd == -1) {
-    perror("open");
-    goto fail;
+    file_fd = open(".", O_RDONLY);
+    if (file_fd != -1) {
+      is_current_dir = true;
+    } else {
+      perror("open");
+      goto fail;
+    }
   }
 
   struct stat file_stat = {0};
@@ -103,7 +110,7 @@ filedata_t read_file(const char* filename, size_t mime_len) {
       char* mime = (char*)malloc(strlen("text/html") + 1);
       strcpy(mime, "text/html");
       
-      DIR* dir = opendir(filename);
+      DIR* dir = opendir((is_current_dir) ? "." : filename);
       if (dir == NULL) {
         perror("opendir");
         goto fail;
@@ -137,7 +144,7 @@ filedata_t read_file(const char* filename, size_t mime_len) {
       strcpy(list_str_temp, list_str);
       int list_fmt_result = snprintf(list_str, list_size, "<h1>%s</h1></br><ul>%s</ul>", filename, list_str_temp);
       free(list_str_temp);
-      printf("Completed list_str %s\n", list_str);
+      // printf("Completed list_str %s\n", list_str);
 
       if (list_fmt_result < 0) {
         perror("snprintf");
